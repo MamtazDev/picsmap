@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Picsmap || Picture testing</title>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+     <!-- Font Awesome CSS -->
+     <link rel="stylesheet" href="fonts/font-awesome/css/font-awesome.min.css" />
+     <script
+       src="https://code.jquery.com/jquery-3.3.1.js"
+       integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+       crossorigin="anonymous"
+     ></script>
+     <script
+       src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
+       integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30="
+       crossorigin="anonymous"
+     ></script>
+ 
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/lity/2.3.0/lity.js"></script>
+     <script
+       src="https://cdn.jsdelivr.net/canvas-toblob/0.1/canvas-toBlob.min.js"
+       type="text/javascript"
+     ></script>
+     <script
+       src="https://cdn.rawgit.com/eligrey/FileSaver.js/1.3.3/FileSaver.min.js"
+       type="text/javascript"
+     ></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-loading-overlay/2.1.3/loadingoverlay.js"></script>
+     <script src="js/bootstrap.min.js"></script>
+     <script src="https://api.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.js"></script>
+     <link
+       href="https://api.mapbox.com/mapbox-gl-js/v1.11.1/mapbox-gl.css"
+       rel="stylesheet"
+     />
+     <link
+       rel="stylesheet"
+       type="text/css"
+       href="https://cdnjs.cloudflare.com/ajax/libs/notie/4.3.1/notie.min.css"
+     />
+ 
+     <script src="https://npmcdn.com/@turf/turf@5.1.6/turf.min.js"></script>
+     <!-- <script src='https://api.mapbox.com/mapbox.js/plugins/arc.js/v0.1.0/arc.js'></script> -->
+     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.3.0/mapbox-gl-geocoder.min.js"></script>
+     <!-- <script
+       data-ad-client="ca-pub-4808605342373402"
+       async
+       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+     ></script> -->
+     <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.3/dist/opentype.min.js"></script>
+     <link
+       rel="stylesheet"
+       href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+     />
+     <!-- jQuery library -->
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+ 
+     <!-- Latest compiled JavaScript -->
+     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </head>
+  <style>
+    #map {
+      height: 100vh;
+      width: auto;
+    }
+    .resizer {
+  font-family: sans-serif;
+  font-weight: bold;
+  padding: 20px;
+  width: 500px;
+}
+
+.dimensions {
+  padding: 20px 0;
+}
+
+.resizer__input {
+  width: 75px;
+  padding: 5px;
+}
+
+.resizer__canvas {
+  max-width: 100%;
+}
+
+  </style>
+  <body>
+    <button class="btn btn-success" id="choose-image" value="Add an image">
+      Add an Image
+    </button>
+    <div class="dimensions">
+      <input type="text" class="resizer__input resizer__input--width" value="0">
+      x
+      <input type="text" class="resizer__input resizer__input--height" value="0">
+      <label>
+        <input type="checkbox" class="resizer__aspect" checked>
+        Keep Aspect Ratio
+      </label>
+    </div>
+    <canvas class="resizer__canvas" style="display: none;" width="500" height="500"></canvas>
+    <div id="map"></div>
+    <script>
+
+      
+      let canvasCtxMain;
+      // Initialize the Mapbox map
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoibWFydGluY2FzZSIsImEiOiJjazY5ZjIya3UwMjNmM2xtc2l4NGR5cndhIn0.u8dDT2iOQzQmzYKZ1EQzIg";
+      var map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/streets-v11",
+        center: [0, 0],
+        zoom: 1,
+      });
+
+      // Add the map to the page
+      map.addControl(new mapboxgl.NavigationControl());
+
+      // Add a click event listener to the button
+      document.getElementById("choose-image").addEventListener("click", function () {
+          // Create a file input element
+          var fileInput = document.createElement("input");
+          fileInput.type = "file";
+
+          // Add a change event listener to the file input element
+          fileInput.addEventListener("change", function () {
+            // Get the file that the user selected
+            var file = fileInput.files[0];
+
+            // Create a new URL object
+            var url = URL.createObjectURL(file);
+
+            // Add a click event listener to the map
+            map.on("click", function (e) {
+              // Get the latitude and longitude of the click event
+              var lng = e.lngLat.lng;
+              var lat = e.lngLat.lat;
+
+              // Create a Mapbox Marker object using the image URL
+              var marker = new mapboxgl.Marker({
+                element: document.createElement("canvas"),
+                anchor: "bottom",
+                offset: [0, 0],
+                draggable: true,
+              })
+                .setLngLat([lng, lat])
+                .setPopup(
+                  new mapboxgl.Popup({ offset: 25 }).setHTML(
+                    "<h3>Marker</h3><p>Click and drag the marker to reposition it</p>"
+                  )
+                )
+                .addTo(map);
+
+           
+
+              // Set the marker's HTML element's background image to the image URL
+              // marker.getElement().style.backgroundImage = "url(" + url + ")";
+              marker.getElement().style.backgroundSize = "contain";
+              marker.getElement().style.backgroundRepeat = "no-repeat";
+              marker.getElement().style.width = "200px";
+              marker.getElement().style.height = "200px";
+             
+              // custom js
+              const reader = new FileReader();
+
+                reader.addEventListener("load", () => {
+                  openImage(reader.result);
+                });
+
+                reader.readAsDataURL(file);
+                canvasCtxMain= marker.getElement().getContext("2d")
+
+              // custom js
+
+            });
+          });
+
+          // Trigger the file input element
+          fileInput.click();
+        });
+
+
+        // custom
+        // const fileInput = document.querySelector(".resizer__file");
+              const widthInput = document.querySelector(".resizer__input--width");
+              const heightInput = document.querySelector(".resizer__input--height");
+              const aspectToggle = document.querySelector(".resizer__aspect");
+              const canvas = document.querySelector(".resizer__canvas");
+              const canvasCtx = canvas.getContext("2d");
+
+              let activeImage, originalWidthToHeightRatio;
+
+              // fileInput.addEventListener("change", (e) => {
+              //   const reader = new FileReader();
+
+              //   reader.addEventListener("load", () => {
+              //     openImage(reader.result);
+              //   });
+
+              //   reader.readAsDataURL(e.target.files[0]);
+              // });
+
+              widthInput.addEventListener("change", () => {
+                if (!activeImage) return;
+
+                const heightValue = aspectToggle.checked
+                  ? widthInput.value / originalWidthToHeightRatio
+                  : heightInput.value;
+
+                resize(widthInput.value, heightValue);
+              });
+
+              heightInput.addEventListener("change", () => {
+                if (!activeImage) return;
+
+                const widthValue = aspectToggle.checked
+                  ? heightInput.value * originalWidthToHeightRatio
+                  : widthInput.value;
+
+                resize(widthValue, heightInput.value);
+              });
+
+              function openImage(imageSrc,canvass) {
+                activeImage = new Image();
+
+                activeImage.addEventListener("load", () => {
+                  originalWidthToHeightRatio = activeImage.width / activeImage.height;
+
+                  resize(activeImage.width, activeImage.height);
+                });
+
+                activeImage.src = imageSrc;
+                
+              }
+
+              function resize(width, height,canvass) {
+                canvas.width = Math.floor(width);
+                canvas.height = Math.floor(height);
+                widthInput.value = Math.floor(width);
+                heightInput.value = Math.floor(height);
+
+                canvasCtx.drawImage(activeImage, 0, 0, Math.floor(width), Math.floor(height));
+
+                // main
+                
+                console.log('ctx',canvasCtxMain)
+                canvasCtxMain.drawImage(activeImage, 0, 0, Math.floor(width), Math.floor(height));
+            
+              }
+        // custom
+    </script>
+  </body>
+</html>
